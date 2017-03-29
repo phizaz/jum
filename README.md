@@ -1,8 +1,8 @@
-# jum
+# Jum
 
 *"jum" means "remember" in Thai*
 
-_An alternative to Joblib's Memory to do file-based cache python function_
+*An alternative to Joblib's Memory to do file-based cache python function*
 
 It uses [**dill**](https://github.com/uqfoundation/dill) package to **pickle** objects and also to help hashing function arguments, so it supports any kind of objects as long as dill supports it.
 
