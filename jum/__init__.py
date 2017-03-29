@@ -1,0 +1,2 @@
+
+from .cache import cache
