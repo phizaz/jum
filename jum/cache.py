@@ -1,7 +1,10 @@
-def func_file(fn):
+def func_file(fn, base_path: str):
     import inspect
-    file = inspect.getfile(fn)
-    return file
+    import os
+    file_path = inspect.getfile(fn)
+    file_rel_path = os.path.relpath(file_path,
+                                    base_path)
+    return file_rel_path
 
 
 def func_name(fn):
@@ -13,16 +16,6 @@ def func_name(fn):
 
 def escape_path(path: str):
     return path.replace('/', '|').replace('\\', '|')
-
-
-def func_full_name(fn, base_path: str):
-    import os.path
-    file = os.path.relpath(func_file(fn),
-                           base_path)
-    name = func_name(fn)
-    return '{path}|{name}'.format(
-        path=escape_path(file),
-        name=name)
 
 
 def hash_sha1(bytes) -> bytes:
@@ -98,17 +91,24 @@ def save_cache_file(file, thing, compresslevel: int):
         dill.dump(thing, handle)
 
 
-def cache_file_path(fn_name: str, fn_hash: str, arg_hash: str, store_path: str):
+def cache_file_path(fn_file: str, fn_name: str, fn_hash: str, arg_hash: str, store_path: str):
     import os.path
-    first_dir = '{}|{}'.format(fn_name, fn_hash)
-    file_path = os.path.join(store_path, first_dir, arg_hash)
+    first_dir = fn_file
+    second_dir = fn_name
+    third_dir = fn_hash
+    file_path = os.path.join(store_path,
+                             first_dir,
+                             second_dir,
+                             third_dir,
+                             arg_hash)
     return file_path
 
 
-def cache_hit(fn_name: str, fn_hash: str, arg_hash: str,
+def cache_hit(fn_file: str, fn_name: str, fn_hash: str, arg_hash: str,
               store_path: str, compresslevel: int):
     import os.path
-    file_path = cache_file_path(fn_name=fn_name,
+    file_path = cache_file_path(fn_file=fn_file,
+                                fn_name=fn_name,
                                 fn_hash=fn_hash,
                                 arg_hash=arg_hash,
                                 store_path=store_path)
@@ -122,10 +122,11 @@ def cache_hit(fn_name: str, fn_hash: str, arg_hash: str,
         return False, None
 
 
-def cache_save(fn_name: str, fn_hash: str, arg_hash: str,
+def cache_save(fn_file: str, fn_name: str, fn_hash: str, arg_hash: str,
                val, store_path: str, compresslevel: int):
     import os
-    file_path = cache_file_path(fn_name=fn_name,
+    file_path = cache_file_path(fn_file=fn_file,
+                                fn_name=fn_name,
                                 fn_hash=fn_hash,
                                 arg_hash=arg_hash,
                                 store_path=store_path)
@@ -144,10 +145,12 @@ def cache(cache_dir: str, compresslevel: int = 2):
 
         @wraps(fn)
         def cached_fn(*args, **kwargs):
-            fn_name = func_full_name(fn, base_path=cache_dir)
+            fn_file = escape_path(func_file(fn, base_path=cache_dir))
+            fn_name = func_name(fn)
             fn_hash = get_base64(hash_func(fn))
             arg_hash = get_base64(hash_argument(args=args, kwargs=kwargs))
             hit, val = cache_hit(
+                fn_file=fn_file,
                 fn_name=fn_name,
                 fn_hash=fn_hash,
                 arg_hash=arg_hash,
@@ -155,6 +158,7 @@ def cache(cache_dir: str, compresslevel: int = 2):
             if not hit:
                 val = fn(*args, **kwargs)
                 cache_save(
+                    fn_file=fn_file,
                     fn_name=fn_name,
                     fn_hash=fn_hash,
                     arg_hash=arg_hash,

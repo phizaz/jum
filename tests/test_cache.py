@@ -27,9 +27,9 @@ class TestCache(unittest.TestCase):
             shutil.rmtree('.jum-test')
 
     def test_cache_file_path(self):
-        res = cache_file_path('test', 'fn_hash', 'arg_hash', 'store')
+        res = cache_file_path('file', 'test', 'fn_hash', 'arg_hash', 'store')
         print(res)
-        self.assertEqual(res, 'store/test|fn_hash/arg_hash')
+        self.assertEqual(res, 'store/file/test/fn_hash/arg_hash')
 
     def test_cache(self):
         fn = cache(cache_dir='.jum-test')(plus)
@@ -81,11 +81,7 @@ class TestFuncName(unittest.TestCase):
         self.assertEqual(res, 'jum.tests.test_cache.plus')
 
     def test_func_file(self):
-        res = func_file(plus)
-        print(res)
-
-    def test_func_full_name(self):
-        res = func_full_name(plus, '.jum-test')
+        res = func_file(plus, base_path='.jum-test')
         print(res)
 
 
