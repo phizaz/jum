@@ -84,7 +84,7 @@ def hash_thing(thing) -> bytes:
 
 
 def hash_argument(args, kwargs, verbose: bool = False):
-    from profiler import TimeElapsed
+    from .profiler import TimeElapsed
     res = hash_thing(b'')
     for each in args:
         with TimeElapsed('dill-ing an arg', verbose=verbose):
@@ -176,7 +176,7 @@ def cache(cache_dir: str, compresslevel: int = 2, verbose: str = ''):
 
     def cache_wrap(fn):
         from functools import wraps
-        from profiler import TimeElapsed
+        from .profiler import TimeElapsed
 
         @wraps(fn)
         def cached_fn(*args, **kwargs):
