@@ -24,7 +24,7 @@ def escape_path(path: str):
 
 
 def hash_sha1(bytes) -> bytes:
-    '''deprecated'''
+    '''it not as fast, but it's so fast for the use'''
     import hashlib
     m = hashlib.sha1()
     m.update(bytes)
@@ -32,11 +32,16 @@ def hash_sha1(bytes) -> bytes:
 
 
 def hash_xxhash(bytes) -> bytes:
-    '''should be faster than sha1'''
+    '''should be faster than sha1, but subject to collisions, using this mainly for hashing ndarray'''
     import xxhash
     m = xxhash.xxh64()
     m.update(bytes)
     return m.digest()
+
+
+def hash_bytes(bytes) -> bytes:
+    '''we can say that the bottleneck is rather the "pickle" process'''
+    return hash_sha1(bytes)
 
 
 def to_bytes(string) -> bytes:
@@ -50,32 +55,48 @@ def func_dependescies(fn):
 def hash_func_body(fn) -> bytes:
     # switch to dill, might be more reliable ? 
     import dill
-    return hash_xxhash(dill.dumps(fn))
+    return hash_bytes(dill.dumps(fn))
 
 
 def hash_func_name(name):
-    return hash_xxhash(to_bytes(name))
+    return hash_bytes(to_bytes(name))
+
+
+def hash_ndarray(ndarray):
+    import numpy as np
+    assert isinstance(ndarray, np.ndarray), 'this works only with ndarray'
+    return hash_xxhash(ndarray)
 
 
 def hash_arbitrary(thing):
     import dill
     bytes = dill.dumps(thing)
-    return hash_xxhash(bytes)
+    return hash_bytes(bytes)
 
 
 def hash_thing(thing) -> bytes:
+    import numpy as np
+    # special case to improve performance (something like 10x)
+    if isinstance(thing, np.ndarray):
+        return hash_ndarray(thing)
+
     return hash_arbitrary(thing)
 
 
-def hash_argument(args, kwargs):
+def hash_argument(args, kwargs, verbose: bool = False):
+    from profiler import TimeElapsed
     res = hash_thing(b'')
     for each in args:
-        res += hash_thing(each)
-        res = hash_xxhash(res)
+        with TimeElapsed('dill-ing an arg', verbose=verbose):
+            res += hash_thing(each)
+        with TimeElapsed('hashing an arg', verbose=verbose):
+            res = hash_bytes(res)
     for key, val in kwargs.items():
-        res += hash_thing(key)
-        res += hash_thing(val)
-        res = hash_xxhash(res)
+        with TimeElapsed('dill-ing an arg', verbose=verbose):
+            res += hash_thing(key)
+            res += hash_thing(val)
+        with TimeElapsed('hashing an arg', verbose=verbose):
+            res = hash_bytes(res)
     return res
 
 
@@ -143,34 +164,47 @@ def cache_save(fn_file: str, fn_name: str, fn_hash: str, arg_hash: str,
     save_cache_file(file_path, thing=val, compresslevel=compresslevel)
 
 
-def cache(cache_dir: str, compresslevel: int = 2):
+def cache(cache_dir: str, compresslevel: int = 2, verbose: str = ''):
+    '''
+    :param cache_dir: 
+    :param compresslevel: 
+    :param verbose: None, 'v', 'vv'
+    :return: 
+    '''
     import os.path
     cache_dir = os.path.join(cache_dir)
 
     def cache_wrap(fn):
         from functools import wraps
+        from profiler import TimeElapsed
 
         @wraps(fn)
         def cached_fn(*args, **kwargs):
-            fn_file = escape_path(func_file(fn, base_path=cache_dir))
-            fn_name = func_name(fn)
-            fn_hash = get_base64(hash_func_body(fn))
-            arg_hash = get_base64(hash_argument(args=args, kwargs=kwargs))
-            hit, val = cache_hit(
-                fn_file=fn_file,
-                fn_name=fn_name,
-                fn_hash=fn_hash,
-                arg_hash=arg_hash,
-                store_path=cache_dir, compresslevel=compresslevel)
-            if not hit:
-                val = fn(*args, **kwargs)
-                cache_save(
+            with TimeElapsed('hashing functions and arguments', verbose='v' in verbose):
+                fn_file = escape_path(func_file(fn, base_path=cache_dir))
+                fn_name = func_name(fn)
+                fn_hash = get_base64(hash_func_body(fn))
+                arg_hash = get_base64(
+                    hash_argument(args=args, kwargs=kwargs,
+                                  verbose='vv' in verbose))
+            with TimeElapsed('cache retrieval', verbose='v' in verbose):
+                hit, val = cache_hit(
                     fn_file=fn_file,
                     fn_name=fn_name,
                     fn_hash=fn_hash,
                     arg_hash=arg_hash,
-                    val=val,
                     store_path=cache_dir, compresslevel=compresslevel)
+            if not hit:
+                with TimeElapsed('preforming real execution', verbose='v' in verbose):
+                    val = fn(*args, **kwargs)
+                with TimeElapsed('cache save', verbose='v' in verbose):
+                    cache_save(
+                        fn_file=fn_file,
+                        fn_name=fn_name,
+                        fn_hash=fn_hash,
+                        arg_hash=arg_hash,
+                        val=val,
+                        store_path=cache_dir, compresslevel=compresslevel)
             return val
 
         return cached_fn

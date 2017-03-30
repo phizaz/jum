@@ -24,6 +24,10 @@ def large_output():
     return np.random.randint(0, 10, (10000, 1000))
 
 
+def large_input(args):
+    return
+
+
 class TestCache(unittest.TestCase):
     def setUp(self):
         import shutil
@@ -46,12 +50,16 @@ class TestCache(unittest.TestCase):
         print(res)
 
     def test_cache_on_large_output(self):
-        from profiler import TimeElapsed
-        fn = cache(cache_dir='.jum-test')(large_output)
-        with TimeElapsed('first call'):
-            fn()
-        with TimeElapsed('second call - cache hit'):
-            fn()
+        fn = cache(cache_dir='.jum-test', verbose='v')(large_output)
+        fn()
+        fn()
+
+    def test_cache_on_large_input(self):
+        import numpy as np
+        a = np.random.randint(0, 10, (100000, 1000))
+        fn = cache(cache_dir='.jum-test', verbose='vv')(large_input)
+        fn(a)
+        fn(a)
 
 
 class TestHashObject(unittest.TestCase):
@@ -70,11 +78,25 @@ class TestHashObject(unittest.TestCase):
         print(res)
         self.assertTrue(isinstance(res, bytes))
 
-    def test_hash_nparrray(self):
+    def test_hash_ndarray(self):
         import numpy as np
-        res = hash_thing(np.random.randint(0, 10, (1000, 1000)))
-        print(res)
-        self.assertTrue(isinstance(res, bytes))
+        from profiler import TimeElapsed
+
+        a = np.random.randint(0, 10, (1000, 1000))
+        b = np.random.randint(0, 10, (10000, 1000))
+        c = np.random.randint(0, 10, (30000, 1000))
+        with TimeElapsed('1000x1000'):
+            res = hash_thing(a)
+            print(res)
+            self.assertTrue(isinstance(res, bytes))
+        with TimeElapsed('10000x1000'):
+            res = hash_thing(b)
+            print(res)
+            self.assertTrue(isinstance(res, bytes))
+        with TimeElapsed('30000x1000'):
+            res = hash_thing(c)
+            print(res)
+            self.assertTrue(isinstance(res, bytes))
 
 
 class TestGetBase64(unittest.TestCase):
