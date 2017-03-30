@@ -19,6 +19,9 @@ def a_long_running_function(array):
 
 import numpy as np
 a_long_running_fn(<some_large_np_array>)
+
+## to configure compression level (default 2)
+@jum.cache(cache_dir='.jum', compresslevel=<0-9>)
 ```
 
 ## Installation
