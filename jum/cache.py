@@ -62,10 +62,25 @@ def hash_func_name(name):
     return hash_bytes(to_bytes(name))
 
 
-def hash_ndarray(ndarray):
+def hash_ndarray_contiguous(ndarray):
+    '''hash using direct xxhash but it works only on contiguous np array'''
     import numpy as np
     assert isinstance(ndarray, np.ndarray), 'this works only with ndarray'
+    assert is_contiguous(ndarray), 'this works only with contiguous arrays'
     return hash_xxhash(ndarray)
+
+
+def is_contiguous(ndarray):
+    try:
+        return ndarray.flags['C_CONTIGUOUS'] is True
+    except Exception:
+        return False
+
+
+def hash_ndarray_arbitrary(ndarray):
+    '''pickel < dill < ndarray.tobytes() = ndarray.tostring()'''
+    import pickle
+    return hash_xxhash(pickle.dumps(ndarray))
 
 
 def hash_arbitrary(thing):
@@ -78,7 +93,10 @@ def hash_thing(thing) -> bytes:
     import numpy as np
     # special case to improve performance (something like 10x)
     if isinstance(thing, np.ndarray):
-        return hash_ndarray(thing)
+        if is_contiguous(thing):
+            return hash_ndarray_contiguous(thing)
+        else:
+            return hash_ndarray_arbitrary(thing)
 
     return hash_arbitrary(thing)
 

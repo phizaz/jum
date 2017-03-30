@@ -83,8 +83,8 @@ class TestHashObject(unittest.TestCase):
         from profiler import TimeElapsed
 
         a = np.random.randint(0, 10, (1000, 1000))
-        b = np.random.randint(0, 10, (10000, 1000))
-        c = np.random.randint(0, 10, (30000, 1000))
+        b = np.random.randint(0, 10, (10000, 1000)).T
+        c = np.random.randint(0, 10, (30000, 1000)).T # after transposed ndarray will not be contiguous anymore
         with TimeElapsed('1000x1000'):
             res = hash_thing(a)
             print(res)

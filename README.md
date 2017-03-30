@@ -44,8 +44,12 @@ pip install jum
 - [x] function file path might not work in case of python console, put some default values for it.
 - [x] using some faster hash, xxhash, (update) I have profiled it, found that the slowest, bottleneck, is rather the "pickle" process not hash itself.
 - [x] favor the slower hash (very negligible) to the safer for collisions.
-- [x] fix the null arg problem.
 - [x] by directing hash the ndarray via xxhash, ndarray hashing performance is increased ten-fold.
 - [x] add a verbose mode, showing the time elapsed for hashing (mainly the overhead of caching).
 - [ ] Take function dependencies (i.e. functions that this function calls) into account.
+
+### Known Problem
+
+- [x] null arg problem where a function as no argument.
+- [x] `ValueError: ndarray is not C-contiguous` happens with some specific ndarray, not all ndarrays can be fed to xxhash directly: be treated by pickle for now.
 
