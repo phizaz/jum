@@ -30,4 +30,7 @@ a_long_running_fn(<some_large_np_array>)
 
 ### To be improved
 
-1. Take function dependencies (i.e. functions that this function calls) into account.
+- [x] use dill to hash the function body instead of the function code, because some function's code cannot be retrieve, esp. in the case of python console.
+- [x] function file path might not work in case of python console, put some default values for it.
+- [ ] Take function dependencies (i.e. functions that this function calls) into account.
+

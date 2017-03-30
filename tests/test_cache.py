@@ -35,6 +35,10 @@ class TestCache(unittest.TestCase):
         fn = cache(cache_dir='.jum-test')(plus)
         res = fn(1, 2)
         print(res)
+        res = fn(1, 2)
+        print(res)
+        res = fn(2, 2)
+        print(res)
 
 
 class TestHashObject(unittest.TestCase):
@@ -99,7 +103,3 @@ class TestHashFuncBody(unittest.TestCase):
         print(res)
         res = hash_func_body(sum)
         print(res)
-
-    def test_hash_func(self):
-        a = hash_func(plus)
-        print(a)

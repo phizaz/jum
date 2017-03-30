@@ -1,10 +1,15 @@
 def func_file(fn, base_path: str):
     import inspect
     import os
-    file_path = inspect.getfile(fn)
-    file_rel_path = os.path.relpath(file_path,
-                                    base_path)
-    return file_rel_path
+    try:
+        file_path = inspect.getfile(fn)
+        file_rel_path = os.path.relpath(file_path,
+                                        base_path)
+        return file_rel_path
+    except Exception:
+        # some functions don't have filename (maybe?)
+        file_path = '<undefined>'
+        return file_path
 
 
 def func_name(fn):
@@ -33,21 +38,18 @@ def func_dependescies(fn):
     raise NotImplementedError
 
 
-def hash_func_body(fn):
-    import inspect
-    string = inspect.getsource(fn)
-    bytes = to_bytes(string)
-    return hash_sha1(bytes)
+def hash_func_body(fn) -> bytes:
+    # switch to dill, might be more reliable ? 
+    import dill
+    return hash_sha1(dill.dumps(fn))
+    # import inspect
+    # string = inspect.getsource(fn)
+    # bytes = to_bytes(string)
+    # return hash_sha1(bytes)
 
 
 def hash_func_name(name):
     return hash_sha1(to_bytes(name))
-
-
-def hash_func(fn):
-    name_hash = hash_func_name(func_name(fn))
-    body_hash = hash_func_body(fn)
-    return hash_sha1(name_hash + body_hash)
 
 
 def hash_arbitrary(thing):
@@ -147,7 +149,7 @@ def cache(cache_dir: str, compresslevel: int = 2):
         def cached_fn(*args, **kwargs):
             fn_file = escape_path(func_file(fn, base_path=cache_dir))
             fn_name = func_name(fn)
-            fn_hash = get_base64(hash_func(fn))
+            fn_hash = get_base64(hash_func_body(fn))
             arg_hash = get_base64(hash_argument(args=args, kwargs=kwargs))
             hit, val = cache_hit(
                 fn_file=fn_file,
