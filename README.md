@@ -46,6 +46,6 @@ pip install jum
 - [x] favor the slower hash (very negligible) to the safer for collisions.
 - [x] fix the null arg problem.
 - [x] by directing hash the ndarray via xxhash, ndarray hashing performance is increased ten-fold.
-- [ ] add a verbose mode, showing the time elapsed for hashing (mainly the overhead of caching).
+- [x] add a verbose mode, showing the time elapsed for hashing (mainly the overhead of caching).
 - [ ] Take function dependencies (i.e. functions that this function calls) into account.
 
