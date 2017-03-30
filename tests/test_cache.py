@@ -19,6 +19,11 @@ def sum(objects):
     return a
 
 
+def large_output():
+    import numpy as np
+    return np.random.randint(0, 10, (10000, 1000))
+
+
 class TestCache(unittest.TestCase):
     def setUp(self):
         import shutil
@@ -39,6 +44,14 @@ class TestCache(unittest.TestCase):
         print(res)
         res = fn(2, 2)
         print(res)
+
+    def test_cache_on_large_output(self):
+        from profiler import TimeElapsed
+        fn = cache(cache_dir='.jum-test')(large_output)
+        with TimeElapsed('first call'):
+            fn()
+        with TimeElapsed('second call - cache hit'):
+            fn()
 
 
 class TestHashObject(unittest.TestCase):
@@ -72,10 +85,25 @@ class TestGetBase64(unittest.TestCase):
 
 
 class TestHashArgs(unittest.TestCase):
+    def test_hash_arg_no_arg(self):
+        res = hash_argument(args=(), kwargs={})
+        print(res)
+        self.assertEqual(res, b'\xd4\xe8\x8a\xbb\x97:*\xef')
+
     def test_hash_arg(self):
         res = hash_argument((1, 2, 3), {'a': 10})
         print(res)
         self.assertTrue(isinstance(res, bytes))
+
+    def test_hash_very_large_arg(self):
+        import numpy as np
+        from profiler import TimeElapsed
+        a = np.random.randint(0, 10, (10000, 1000))
+        b = np.random.randint(0, 10, (10000, 1000))
+        c = np.random.randint(0, 10, (10000, 1000))
+        d = np.random.randint(0, 10, (10000, 1000))
+        with TimeElapsed(name='hash-args'):
+            hash_argument(args=(a, b, c, d), kwargs={})
 
 
 class TestFuncName(unittest.TestCase):

@@ -43,6 +43,7 @@ pip install jum
 - [x] use dill to hash the function body instead of the function code, because some function's code cannot be retrieve, esp. in the case of python console.
 - [x] function file path might not work in case of python console, put some default values for it.
 - [x] using some faster hash, xxhash.
+- [x] (0.3) fix the null arg problem.
 - [ ] add a verbose mode, showing the time elapsed for hashing (mainly the overhead of caching).
 - [ ] Take function dependencies (i.e. functions that this function calls) into account.
 

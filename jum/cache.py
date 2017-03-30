@@ -68,7 +68,7 @@ def hash_thing(thing) -> bytes:
 
 
 def hash_argument(args, kwargs):
-    res = b''
+    res = hash_thing(b'')
     for each in args:
         res += hash_thing(each)
         res = hash_xxhash(res)
