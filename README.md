@@ -21,6 +21,12 @@ import numpy as np
 a_long_running_fn(<some_large_np_array>)
 ```
 
+## Installation
+
+```
+pip install jum
+```
+
 ### Features
 
 1. It supports almost any kind of objects including numpy's ndarray which is its main use case.
