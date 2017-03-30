@@ -24,8 +24,17 @@ def escape_path(path: str):
 
 
 def hash_sha1(bytes) -> bytes:
+    '''deprecated'''
     import hashlib
     m = hashlib.sha1()
+    m.update(bytes)
+    return m.digest()
+
+
+def hash_xxhash(bytes) -> bytes:
+    '''should be faster than sha1'''
+    import xxhash
+    m = xxhash.xxh64()
     m.update(bytes)
     return m.digest()
 
@@ -41,21 +50,17 @@ def func_dependescies(fn):
 def hash_func_body(fn) -> bytes:
     # switch to dill, might be more reliable ? 
     import dill
-    return hash_sha1(dill.dumps(fn))
-    # import inspect
-    # string = inspect.getsource(fn)
-    # bytes = to_bytes(string)
-    # return hash_sha1(bytes)
+    return hash_xxhash(dill.dumps(fn))
 
 
 def hash_func_name(name):
-    return hash_sha1(to_bytes(name))
+    return hash_xxhash(to_bytes(name))
 
 
 def hash_arbitrary(thing):
     import dill
     bytes = dill.dumps(thing)
-    return hash_sha1(bytes)
+    return hash_xxhash(bytes)
 
 
 def hash_thing(thing) -> bytes:
@@ -66,11 +71,11 @@ def hash_argument(args, kwargs):
     res = b''
     for each in args:
         res += hash_thing(each)
-        res = hash_sha1(res)
+        res = hash_xxhash(res)
     for key, val in kwargs.items():
         res += hash_thing(key)
         res += hash_thing(val)
-        res = hash_sha1(res)
+        res = hash_xxhash(res)
     return res
 
 

@@ -1,12 +1,12 @@
 from setuptools import setup
 
-version = '0.1'
+version = '0.2'
 
 setup(
     name='jum',
     packages=['jum'],
     include_package_data=True,
-    install_requires=['dill'],
+    install_requires=['dill', 'xxhash'],
     version=version,
     description='An alternative to Joblib\'s Memory to cache python function in-file',
     author='Konpat Preechakul',
