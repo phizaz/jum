@@ -52,5 +52,6 @@ pip install jum
 ### Known Problem
 
 - [x] null arg problem where a function as no argument.
+- [x] using `dill` for hashing the function is an overkill, it's far too sensitive, I will fallback to function source lines.
 - [x] `ValueError: ndarray is not C-contiguous` happens with some specific ndarray, not all ndarrays can be fed to xxhash directly: be treated by pickle for now.
 

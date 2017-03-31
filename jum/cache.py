@@ -53,7 +53,15 @@ def func_dependescies(fn):
 
 
 def hash_func_body(fn) -> bytes:
-    # switch to dill, might be more reliable ? 
+    return hash_func_body_lines(fn)
+
+def hash_func_body_lines(fn) -> bytes:
+    import inspect
+    return hash_bytes(to_bytes(inspect.getsource(fn)))
+
+
+def hash_func_body_dill(fn) -> bytes:
+    '''more reliable, more sensitive, too sensitive even the function has changed its line number'''
     import dill
     return hash_bytes(dill.dumps(fn))
 
