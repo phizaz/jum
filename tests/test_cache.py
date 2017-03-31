@@ -84,7 +84,7 @@ class TestHashObject(unittest.TestCase):
 
         a = np.random.randint(0, 10, (1000, 1000))
         b = np.random.randint(0, 10, (10000, 1000)).T
-        c = np.random.randint(0, 10, (30000, 1000)).T # after transposed ndarray will not be contiguous anymore
+        c = np.random.randint(0, 10, (30000, 1000)).T  # after transposed ndarray will not be contiguous anymore
         with TimeElapsed('1000x1000'):
             res = hash_thing(a)
             print(res)
@@ -137,6 +137,46 @@ class TestFuncName(unittest.TestCase):
     def test_func_file(self):
         res = func_file(plus, base_path='.jum-test')
         print(res)
+
+
+class TestHashNDArray(unittest.TestCase):
+    import numpy as np
+    arr = np.random.randint(0, 10, (50000, 1000))
+    arr_t = np.random.randint(0, 10, (50000, 1000)).T
+
+    def test_hash_by_xxhash(self):
+        from profiler import TimeElapsed
+
+        with TimeElapsed('xxhash'):
+            res = hash_xxhash(self.arr)
+            print(res)
+
+    def test_hash_transpose(self):
+        from profiler import TimeElapsed
+
+        with TimeElapsed('xxhash'):
+            res = hash_xxhash(self.arr_t.T)
+            print(res)
+
+    def test_hash_by_pickle(self):
+        from profiler import TimeElapsed
+        with TimeElapsed('pickle + xxhash'):
+            import pickle
+            res = hash_xxhash(pickle.dumps(self.arr))
+            print(res)
+
+    def test_hash_by_dill(self):
+        from profiler import TimeElapsed
+        with TimeElapsed('dill + xxhash'):
+            import dill
+            res = hash_xxhash(dill.dumps(self.arr))
+            print(res)
+
+    def test_hash_by_flatten(self):
+        from profiler import TimeElapsed
+        with TimeElapsed('flatten + xxhash'):
+            res = hash_xxhash(self.arr.flatten())
+            print(res)
 
 
 class TestSHA1Hash(unittest.TestCase):

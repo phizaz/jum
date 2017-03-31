@@ -40,12 +40,13 @@ pip install jum
 
 ### To be improved
 
-- [x] use dill to hash the function body instead of the function code, because some function's code cannot be retrieve, esp. in the case of python console.
+- [x] use dill to hash the function body instead of the function code, because some function's code cannot be retrieved, esp. in the case of python console.
 - [x] function file path might not work in case of python console, put some default values for it.
 - [x] using some faster hash, xxhash, (update) I have profiled it, found that the slowest, bottleneck, is rather the "pickle" process not hash itself.
 - [x] favor the slower hash (very negligible) to the safer for collisions.
 - [x] by directing hash the ndarray via xxhash, ndarray hashing performance is increased ten-fold.
 - [x] add a verbose mode, showing the time elapsed for hashing (mainly the overhead of caching).
+- [x] add support to `F_CONTIGUOUS` nd-array by transposing it we can use xxhash to hash.
 - [ ] Take function dependencies (i.e. functions that this function calls) into account.
 
 ### Known Problem

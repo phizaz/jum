@@ -66,24 +66,31 @@ def hash_ndarray_contiguous(ndarray):
     '''hash using direct xxhash but it works only on contiguous np array'''
     import numpy as np
     assert isinstance(ndarray, np.ndarray), 'this works only with ndarray'
-    assert is_contiguous(ndarray), 'this works only with contiguous arrays'
+    assert is_c_contiguous(ndarray), 'this works only with contiguous arrays'
     return hash_xxhash(ndarray)
 
 
-def is_contiguous(ndarray):
+def is_c_contiguous(ndarray):
     try:
         return ndarray.flags['C_CONTIGUOUS'] is True
     except Exception:
         return False
 
 
-def hash_ndarray_arbitrary(ndarray):
+def is_f_contiguous(ndarray):
+    try:
+        return ndarray.flags['F_CONTIGUOUS'] is True
+    except Exception:
+        return False
+
+
+def hash_ndarray_any(ndarray):
     '''pickel < dill < ndarray.tobytes() = ndarray.tostring()'''
     import pickle
     return hash_xxhash(pickle.dumps(ndarray))
 
 
-def hash_arbitrary(thing):
+def hash_any(thing):
     import dill
     bytes = dill.dumps(thing)
     return hash_bytes(bytes)
@@ -93,12 +100,14 @@ def hash_thing(thing) -> bytes:
     import numpy as np
     # special case to improve performance (something like 10x)
     if isinstance(thing, np.ndarray):
-        if is_contiguous(thing):
+        if is_c_contiguous(thing):
             return hash_ndarray_contiguous(thing)
+        elif is_f_contiguous(thing):
+            return hash_ndarray_contiguous(thing.T)  # transpose it first!
         else:
-            return hash_ndarray_arbitrary(thing)
+            return hash_ndarray_any(thing)
 
-    return hash_arbitrary(thing)
+    return hash_any(thing)
 
 
 def hash_argument(args, kwargs, verbose: bool = False):
